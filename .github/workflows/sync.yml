@@ -5,9 +5,14 @@ on:
   schedule:
     - cron: '0 9 * * *'
 
+permissions:
+  contents: write
+
 jobs:
   sync:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Checkout repo
@@ -28,3 +33,11 @@ jobs:
           VIT_USERNAME: ${{ secrets.VIT_USERNAME }}
           VIT_PASSWORD: ${{ secrets.VIT_PASSWORD }}
         run: python sync.py
+
+      - name: Commit updated log
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add log.json index.html
+          git diff --staged --quiet || git commit -m "Sync log update $(date -u '+%Y-%m-%d %H:%M UTC')"
+          git push
