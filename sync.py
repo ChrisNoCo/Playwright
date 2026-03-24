@@ -1,45 +1,66 @@
 import os
+import json
+from datetime import datetime, timezone
 from playwright.sync_api import sync_playwright, expect
 
-with sync_playwright() as p:
-    browser = p.chromium.launch(headless=True)
-    page = browser.new_page()
+LOG_FILE = "log.json"
 
-    # Navigate to login page
-    page.goto("https://www.valuesinteaching.org/manage")
+def load_log():
+    if os.path.exists(LOG_FILE):
+        with open(LOG_FILE, "r") as f:
+            return json.load(f)
+    return []
 
-    # Fill in credentials from environment variables
-    page.fill("#login", os.environ["VIT_USERNAME"])
-    page.fill("#password", os.environ["VIT_PASSWORD"])
+def save_log(entries):
+    with open(LOG_FILE, "w") as f:
+        json.dump(entries, f, indent=2)
 
-    # Submit
-    page.click("button.login-submit-button")
+def run_sync():
+    messages = []
+    status = "success"
 
-    # Wait for page to load
-    page.wait_for_load_state("networkidle")
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
 
-    # Verify login succeeded — logout link exists in DOM
-    expect(page.locator(".userinfo__logoutlink")).to_be_attached()
-    print("✓ Login verified — logout link is present")
+            page.goto("https://www.valuesinteaching.org/manage")
+            page.fill("#login", os.environ["VIT_USERNAME"])
+            page.fill("#password", os.environ["VIT_PASSWORD"])
+            page.click("button.login-submit-button")
+            page.wait_for_load_state("networkidle")
 
-    # Navigate to course content page
-    page.goto("https://www.valuesinteaching.org/courses/3048746/content")
-    page.wait_for_load_state("networkidle")
-    print("✓ Navigated to course content page")
+            expect(page.locator(".userinfo__logoutlink")).to_be_attached()
+            messages.append("✓ Login verified — logout link is present")
 
-    # If already synced, nothing to do
-    if page.locator("#syncing-complete").is_visible():
-        print("ℹ️ Already in sync — no changes to sync. Exiting.")
-        browser.close()
-        exit(0)
+            page.goto("https://www.valuesinteaching.org/courses/3048746/content")
+            page.wait_for_load_state("networkidle")
+            messages.append("✓ Navigated to course content page")
 
-    # Click the sync button
-    expect(page.locator("#sync-button")).to_be_visible()
-    page.click("#sync-button")
-    print("✓ Sync button clicked")
+            if page.locator("#syncing-complete").is_visible():
+                messages.append("ℹ️ Already in sync — no changes to sync")
+                status = "skipped"
+            else:
+                expect(page.locator("#sync-button")).to_be_visible()
+                page.click("#sync-button")
+                messages.append("✓ Sync button clicked")
 
-    # Wait for sync to complete
-    expect(page.locator("#syncing-complete")).to_be_visible(timeout=30000)
-    print("✓ Sync complete — 'All changes synced' message appeared")
+                expect(page.locator("#syncing-complete")).to_be_visible(timeout=30000)
+                messages.append("✓ Sync complete — 'All changes synced' message appeared")
 
-    browser.close()
+            browser.close()
+
+    except Exception as e:
+        messages.append(f"✗ Error: {str(e)}")
+        status = "failed"
+
+    return status, messages
+
+# Run and log
+status, messages = run_sync()
+timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+
+entry = {
+    "timestamp": timestamp,
+    "status": status,
+    "messages": messages
