@@ -64,3 +64,11 @@ entry = {
     "timestamp": timestamp,
     "status": status,
     "messages": messages
+    }
+
+for msg in messages:
+    print(msg)
+
+log = load_log()
+log.insert(0, entry)  # newest first
+save_log(log)
