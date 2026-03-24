@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Values In Teaching — Sync Log</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f7;
+      color: #1d1d1f;
+      padding: 40px 20px;
+    }
+
+    header {
+      max-width: 760px;
+      margin: 0 auto 32px;
+    }
+
+    header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    header p {
+      font-size: 14px;
+      color: #6e6e73;
+    }
+
+    .entry {
+      max-width: 760px;
+      margin: 0 auto 16px;
+      background: white;
+      border-radius: 12px;
+      padding: 20px 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      border-left: 5px solid #ccc;
+    }
+
+    .entry.success { border-left-color: #34c759; }
+    .entry.failed  { border-left-color: #ff3b30; }
+    .entry.skipped { border-left-color: #ff9f0a; }
+
+    .entry-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .badge {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge.success { background: #d1f5db; color: #1a7a35; }
+    .badge.failed  { background: #ffd6d4; color: #c0392b; }
+    .badge.skipped { background: #fff0d4; color: #a05c00; }
+
+    .timestamp {
+      font-size: 13px;
+      color: #6e6e73;
+    }
+
+    .messages {
+      list-style: none;
+      font-size: 14px;
+      line-height: 1.8;
+      color: #3a3a3c;
+    }
+
+    .messages li { padding: 1px 0; }
+
+    #loading {
+      text-align: center;
+      color: #6e6e73;
+      margin-top: 60px;
+      font-size: 15px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Values In Teaching — Sync Log</h1>
+    <p>Automated sync history — runs daily at 9am UTC</p>
+  </header>
+
+  <div id="log-container">
+    <p id="loading">Loading log...</p>
+  </div>
+
+  <script>
+    fetch('log.json')
+      .then(r => r.json())
+      .then(entries => {
+        const container = document.getElementById('log-container');
+        container.innerHTML = '';
+
+        if (entries.length === 0) {
+          container.innerHTML = '<p style="text-align:center;color:#6e6e73;">No runs yet.</p>';
+          return;
+        }
+
+        entries.forEach(entry => {
+          const div = document.createElement('div');
+          div.className = `entry ${entry.status}`;
+
+          const label = entry.status === 'success' ? 'Synced'
+                      : entry.status === 'skipped' ? 'No changes'
+                      : 'Failed';
+
+          div.innerHTML = `
+            <div class="entry-header">
+              <span class="timestamp">${entry.timestamp}</span>
+              <span class="badge ${entry.status}">${label}</span>
+            </div>
+            <ul class="messages">
+              ${entry.messages.map(m => `<li>${m}</li>`).join('')}
+            </ul>
+          `;
+          container.appendChild(div);
+        });
+      })
+      .catch(() => {
+        document.getElementById('log-container').innerHTML =
+          '<p style="text-align:center;color:#ff3b30;">Could not load log.json</p>';
+      });
+  </script>
+</body>
+</html>
