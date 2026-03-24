@@ -33,7 +33,7 @@ def run_sync():
             expect(page.locator(".userinfo__logoutlink")).to_be_attached()
             messages.append("✓ Login verified — logout link is present")
 
-            page.goto("https://www.valuesinteaching.org/courses/3048746/content")
+            page.goto(os.environ["VIT_COURSE_URL"])
             page.wait_for_load_state("networkidle")
             messages.append("✓ Navigated to course content page")
 
@@ -64,7 +64,7 @@ entry = {
     "timestamp": timestamp,
     "status": status,
     "messages": messages
-    }
+}
 
 for msg in messages:
     print(msg)
