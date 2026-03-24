@@ -32,6 +32,7 @@ jobs:
         env:
           VIT_USERNAME: ${{ secrets.VIT_USERNAME }}
           VIT_PASSWORD: ${{ secrets.VIT_PASSWORD }}
+          VIT_COURSE_URL: ${{ secrets.VIT_COURSE_URL }}
         run: python sync.py
 
       - name: Commit updated log
