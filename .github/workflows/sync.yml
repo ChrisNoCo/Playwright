@@ -1,0 +1,30 @@
+name: Sync Values In Teaching
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 9 * * *'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: |
+          pip install playwright
+          playwright install chromium
+
+      - name: Run sync script
+        env:
+          VIT_USERNAME: ${{ secrets.VIT_USERNAME }}
+          VIT_PASSWORD: ${{ secrets.VIT_PASSWORD }}
+        run: python sync.py
