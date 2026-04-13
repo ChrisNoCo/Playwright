@@ -1,5 +1,12 @@
 [
   {
+    "timestamp": "2026-04-13 10:50 UTC",
+    "status": "failed",
+    "messages": [
+      "\u2717 Error: Locator expected to be attached\nActual value: None\nError: element(s) not found \nCall log:\n  - Expect \"to_be_attached\" with timeout 5000ms\n  - waiting for locator(\".userinfo__logoutlink\")\n"
+    ]
+  },
+  {
     "timestamp": "2026-04-12 09:51 UTC",
     "status": "skipped",
     "messages": [
