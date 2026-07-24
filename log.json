@@ -1,5 +1,12 @@
 [
   {
+    "timestamp": "2026-07-24 11:06 UTC",
+    "status": "failed",
+    "messages": [
+      "\u2717 Error: Timeout 30000ms exceeded."
+    ]
+  },
+  {
     "timestamp": "2026-07-23 11:13 UTC",
     "status": "skipped",
     "messages": [
